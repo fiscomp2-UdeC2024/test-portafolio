@@ -1,0 +1,42 @@
+# Github workflow to compile latex and deploy the pdf to an orphan branch.
+
+name: Build syllabus PDF
+
+# trigger this workflow only if the source files change
+on:
+  push:
+    branches:
+      - master
+
+# ask permission to write a new branch
+permissions:
+  contents: write
+
+
+jobs:
+  build_latex:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Git repository
+        uses: actions/checkout@v4
+
+      - name: Compile LaTeX document
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: portafolio.tex
+          latexmk_shell_escape: true
+
+
+      - name: Move PDF to output directory
+        run: |
+          mkdir output
+          mv portafolio.pdf output/
+
+      - name: Push contents of output/ to an orphan branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./output
+          publish_branch: portafolio
+          force_orphan: true
